@@ -71,13 +71,9 @@ class HttpHandler(BaseHTTPRequestHandler):
         # читаємо тіло запиту
         data = self.rfile.read(int(self.headers["Content-Length"]))
 
-        # декодуємо URL encoded дані
-        data_parse = urllib.parse.unquote_plus(data.decode())
-
-        # перетворюємо "username=...&message=..." -> dict
-        data_dict = {
-            key: value for key, value in [el.split("=") for el in data_parse.split("&")]
-        }
+        # парсимо URL encoded дані (split ДО unquote, інакше = чи & в тексті ламають парсинг)
+        parsed = urllib.parse.parse_qs(data.decode(), keep_blank_values=True)
+        data_dict = {key: values[0] for key, values in parsed.items()}
 
         # Зберігаємо повідомлення в JSON файл
         HttpHandler.save_message(data_dict)
